@@ -17,6 +17,7 @@
 
 package com.example.android.bluetoothchat;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.view.Menu;
@@ -40,6 +41,8 @@ public class MainActivity extends SampleActivityBase {
 
     public static final String TAG = "MainActivity";
 
+    private DBHelper db;
+
     // Whether the Log Fragment is currently shown
     private boolean mLogShown;
 
@@ -48,15 +51,23 @@ public class MainActivity extends SampleActivityBase {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        db = DBHelper.getDBHelper(this);
+
+        if (db.numberOfContacts() == 0) {
+            startActivity(new Intent(this, SetupActivity.class));
+            finish();
+        }
+
         if (savedInstanceState == null) {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             BluetoothChatFragment fragment = new BluetoothChatFragment();
             transaction.replace(R.id.sample_content_fragment, fragment);
             transaction.commit();
         }
+
     }
 
-    @Override
+    /*@Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
@@ -86,7 +97,7 @@ public class MainActivity extends SampleActivityBase {
                 return true;
         }
         return super.onOptionsItemSelected(item);
-    }
+    }*/
 
     /** Create a chain of targets that will receive log data */
     @Override

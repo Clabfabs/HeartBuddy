@@ -395,6 +395,9 @@ public class BluetoothChatFragment extends Fragment {
                 ensureDiscoverable();
                 return true;
             }
+            case R.id.go_to_setup: {
+                startActivity(new Intent(getActivity(), SetupActivity.class));
+            }
         }
         return false;
     }
