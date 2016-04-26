@@ -81,3 +81,5 @@ public class SetupActivity extends SampleActivityBase {
         super.onResume();
     }
 }
+
+// This is an example
