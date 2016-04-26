@@ -82,4 +82,4 @@ public class SetupActivity extends SampleActivityBase {
     }
 }
 
-// This is an example 2
+// This is an example 3
