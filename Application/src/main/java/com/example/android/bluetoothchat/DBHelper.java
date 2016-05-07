@@ -97,10 +97,65 @@ public class DBHelper extends SQLiteOpenHelper {
         res.moveToFirst();
 
         // TODO: Only takes names, we want phone numbers as well
-        while (!res.isAfterLast()) {
+        /*while (!res.isAfterLast()) {
             array_list.add(res.getString(res.getColumnIndex(CONTACTS_COLUMN_NAME)));
             res.moveToNext();
+        }*/
+        //To add the contact details: name, phone numbers
+
+        try {
+            if (res.moveToFirst()) {
+                do {
+                    array_list.add(res.getString(res.getColumnIndex(CONTACTS_COLUMN_NAME)));
+
+                    array_list.add(res.getString(res.getColumnIndex(CONTACTS_COLUMN_PHONE)));
+
+                } while (res.moveToNext());
+            }
+        } finally {
+
+            db.close();
+
+
+
+
+
+
         }
+
         return array_list;
+
+
     }
+/* update of detail information.(Need to be verified well) */
+  /*  public List< String > getAllContacts() {
+        List< String> array_List = new ArrayList< String>();
+        String refQuery = "Select * From " + CONTACTS_TABLE_NAME;
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor res = db.rawQuery(refQuery, null);
+        try {
+            if (res.moveToFirst()) {
+                do {
+                    String column_info = new String();
+
+                    column_info.add(res.getString(res.getColumnIndex(CONTACTS_COLUMN_NAME)));
+
+                    column_info.setCol1(res.getString(1));
+                    column_info.setCol2(res.getInt(2));
+
+                    array_List.add(column_info);
+                } while (res.moveToNext());
+            }
+        } finally {
+
+            db.close();
+        }
+
+        Collections.sort(column_infoList);
+        return column_infoList;
+    }*/
+
+
 }
+
+
