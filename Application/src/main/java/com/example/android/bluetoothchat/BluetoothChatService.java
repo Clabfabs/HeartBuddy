@@ -42,6 +42,7 @@ public class BluetoothChatService {
     // Debugging
     private static final String TAG = "BluetoothChatService";
 
+    // this is testing git workthrough
     // Name for the SDP record when creating server socket
     private static final String NAME_SECURE = "BluetoothChatSecure";
     private static final String NAME_INSECURE = "BluetoothChatInsecure";
