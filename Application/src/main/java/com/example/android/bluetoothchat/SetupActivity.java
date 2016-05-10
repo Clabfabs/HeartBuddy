@@ -76,6 +76,7 @@ public class SetupActivity extends SampleActivityBase {
 
         if (all.size() != 0) {
             currentName.setText(all.get(0));
+            currentPhone.setText(all.get(1));
         }
 
         super.onResume();

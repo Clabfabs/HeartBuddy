@@ -89,7 +89,7 @@ public class DBHelper extends SQLiteOpenHelper {
     }
 
     public ArrayList<String> getAllContacts() {
-        ArrayList<String> array_list = new ArrayList<String>();
+        ArrayList<String> array_list = new ArrayList<>();
 
         //hp = new HashMap();
         SQLiteDatabase db = this.getReadableDatabase();
