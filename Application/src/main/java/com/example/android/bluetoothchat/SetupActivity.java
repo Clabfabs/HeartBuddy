@@ -70,8 +70,6 @@ public class SetupActivity extends SampleActivityBase {
         ArrayList<String> all = db.getAllContacts();
         TextView currentName = (TextView) findViewById(R.id.current_name);
 
-        // TODO: When also phone number is available, set phone number
-
         TextView currentPhone = (TextView) findViewById(R.id.current_phone);
 
         if (all.size() != 0) {

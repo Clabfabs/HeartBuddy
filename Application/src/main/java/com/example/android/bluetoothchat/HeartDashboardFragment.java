@@ -6,32 +6,36 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.view.KeyEvent;
+import android.telephony.SmsManager;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.EditorInfo;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.android.common.logger.Log;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.DataPointInterface;
 import com.jjoe64.graphview.series.LineGraphSeries;
+import com.jjoe64.graphview.series.OnDataPointTapListener;
+import com.jjoe64.graphview.series.Series;
+
+import org.w3c.dom.Text;
+
+import java.util.ArrayList;
+import java.util.Calendar;
 
 
 /**
@@ -63,6 +67,16 @@ public class HeartDashboardFragment extends Fragment {
      */
     private BluetoothChatService mChatService = null;
 
+    private DBHelper db;
+
+    protected LocationManager locationManager;
+    protected LocationListener locationListener;
+
+    String emergencyPhoneNumber;
+    String emergencyName;
+
+    LineGraphSeries<DataPoint> dataSeries = new LineGraphSeries<DataPoint>();
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,6 +89,15 @@ public class HeartDashboardFragment extends Fragment {
             FragmentActivity activity = getActivity();
             Toast.makeText(activity, "Bluetooth is not available", Toast.LENGTH_LONG).show();
             activity.finish();
+        }
+
+        db = DBHelper.getDBHelper(getContext());
+
+        ArrayList<String> all = db.getAllContacts();
+
+        if (all.size() != 0) {
+            emergencyName = all.get(0);
+            emergencyPhoneNumber = all.get(1);
         }
     }
 
@@ -115,15 +138,30 @@ public class HeartDashboardFragment extends Fragment {
             }
         }
 
+        initializeGraph();
+    }
+
+    private void initializeGraph() {
         GraphView graph = (GraphView) getView().findViewById(R.id.graph);
-        LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(new DataPoint[] {
-                new DataPoint(0, 1),
-                new DataPoint(1, 5),
-                new DataPoint(2, 3),
-                new DataPoint(3, 2),
-                new DataPoint(4, 6)
+        graph.getViewport().setScrollable(true);
+        graph.getViewport().setScalable(true);
+        graph.getViewport().setYAxisBoundsManual(true);
+        graph.getViewport().setMinY(0);
+        graph.getViewport().setMaxY(150);
+
+        graph.addSeries(dataSeries);
+        dataSeries.setDrawDataPoints(true);
+        dataSeries.setDataPointsRadius(10); // set the radius of data point
+        dataSeries.setOnDataPointTapListener(new OnDataPointTapListener() {
+            @Override
+            public void onTap(Series series, DataPointInterface dataPoint) {
+                Toast.makeText(getActivity(), "Series: On Data Point clicked: " + dataPoint, Toast.LENGTH_SHORT).show();
+            }
         });
-        graph.addSeries(series);
+    }
+
+    private void updateGraph(int x, int y) {
+        dataSeries.appendData(new DataPoint(x, y), true, 100);
     }
 
     @Override
@@ -182,6 +220,9 @@ public class HeartDashboardFragment extends Fragment {
      * The Handler that gets information back from the BluetoothChatService
      */
     private final Handler mHandler = new Handler() {
+        Calendar cal = Calendar.getInstance();
+        int counter = 0;
+
         @Override
         public void handleMessage(Message msg) {
             FragmentActivity activity = getActivity();
@@ -211,10 +252,29 @@ public class HeartDashboardFragment extends Fragment {
                     byte[] readBuf = (byte[]) msg.obj;
                     // construct a string from the valid bytes in the buffer
                     String readMessage = new String(readBuf, 0, msg.arg1);
+                    int BPM;
 
-                    // TODO: Something with the data (emergency? just heart beat?
-
-
+                    switch (readMessage.substring(0,1)) {
+                        case "B":
+                            BPM = Integer.parseInt(readMessage.substring(1));
+                            int x = counter++;
+                            Log.i(TAG, Integer.toString(x));
+                            Log.i(TAG, Integer.toString(BPM));
+                            updateGraph(x, BPM);
+                            break;
+                        case "L":
+                        case "H":
+                            BPM = Integer.parseInt(readMessage.substring(1));
+                            String message = "EMERGENCY!!!!!!! BPM of " + BPM + " detected!";
+                            Log.i(TAG, message);
+                            sendSMSMessage(message);
+                            break;
+                        case "X":
+                        case "Y":
+                            break;
+                        default:
+                            Log.i(TAG, "no valid input");
+                    }
                     // mConversationArrayAdapter.add(mConnectedDeviceName + ":  " + readMessage);
                     break;
                 case Constants.MESSAGE_DEVICE_NAME:
@@ -234,6 +294,21 @@ public class HeartDashboardFragment extends Fragment {
             }
         }
     };
+
+    protected void sendSMSMessage(String message) {
+        Log.i("Send SMS", "");
+
+        try {
+            SmsManager smsManager = SmsManager.getDefault();
+            smsManager.sendTextMessage(emergencyPhoneNumber, null, message, null, null);
+            Toast.makeText(getContext(), "SMS sent.", Toast.LENGTH_LONG).show();
+        }
+
+        catch (Exception e) {
+            Toast.makeText(getContext(), "SMS faild, please try again.", Toast.LENGTH_LONG).show();
+            e.printStackTrace();
+        }
+    }
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
