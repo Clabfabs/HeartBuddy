@@ -60,7 +60,7 @@ public class MainActivity extends SampleActivityBase {
 
         if (savedInstanceState == null) {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-            BluetoothChatFragment fragment = new BluetoothChatFragment();
+            HeartDashboardFragment fragment = new HeartDashboardFragment();
             transaction.replace(R.id.sample_content_fragment, fragment);
             transaction.commit();
         }
@@ -99,7 +99,7 @@ public class MainActivity extends SampleActivityBase {
         return super.onOptionsItemSelected(item);
     }*/
 
-    /** Create a chain of targets that will receive log data */
+    /** Create a chain of targets that will receive log data *//*
     @Override
     public void initializeLogging() {
         // Wraps Android's native log framework.
@@ -117,5 +117,5 @@ public class MainActivity extends SampleActivityBase {
         msgFilter.setNext(logFragment.getLogView());
 
         Log.i(TAG, "Ready");
-    }
+    }*/
 }
