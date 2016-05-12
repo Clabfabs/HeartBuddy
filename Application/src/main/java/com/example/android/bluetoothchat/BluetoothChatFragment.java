@@ -149,8 +149,8 @@ public class BluetoothChatFragment extends Fragment {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         mConversationView = (ListView) view.findViewById(R.id.in);
-        mOutEditText = (EditText) view.findViewById(R.id.edit_text_out);
-        mSendButton = (Button) view.findViewById(R.id.button_send);
+   //     mOutEditText = (EditText) view.findViewById(R.id.edit_text_out);
+        // mSendButton = (Button) view.findViewById(R.id.button_send);
     }
 
     /**
@@ -173,9 +173,9 @@ public class BluetoothChatFragment extends Fragment {
                 // Send a message using content of the edit text widget
                 View view = getView();
                 if (null != view) {
-                    TextView textView = (TextView) view.findViewById(R.id.edit_text_out);
-                    String message = textView.getText().toString();
-                    sendMessage(message);
+                    //TextView textView = (TextView) view.findViewById(R.id.edit_text_out);
+                    //String message = textView.getText().toString();
+                    //sendMessage(message);
                 }
             }
         });

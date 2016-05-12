@@ -47,10 +47,11 @@
     </RelativeLayout>
 
     <Button
-        android:layout_width="182dp"
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="80dp"
         android:layout_height="wrap_content"
         android:text="Save"
         android:id="@+id/button_save"
-        android:layout_gravity="center_horizontal"
-        android:layout_weight="0.25" />
+        android:layout_gravity="center_horizontal" />
+
 </LinearLayout>
