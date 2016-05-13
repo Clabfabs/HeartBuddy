@@ -13,6 +13,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
   -->
+
 <LinearLayout
       xmlns:android="http://schemas.android.com/apk/res/android"
       android:orientation="vertical"
@@ -37,7 +38,8 @@
             android:layout_height="wrap_content"
             android:text="Set Threshhold"
             android:id="@+id/button_threshhold"
-            android:layout_gravity="center_horizontal|bottom" />
+            android:layout_gravity="center_horizontal|bottom"
+            android:clickable="true" />
     </FrameLayout>
 
 </LinearLayout>

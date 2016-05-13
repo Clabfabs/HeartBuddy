@@ -48,13 +48,6 @@ public class MainActivity extends SampleActivityBase {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        setthreshhold = (Button) findViewById(R.id.button_threshhold);
-        setthreshhold.setOnClickListener(new View.OnClickListener(){
-            public void onClick(View v){
-                startActivity(new Intent(MainActivity.this,ThreshholdActivity.class));
-            }
-        });
-
         db = DBHelper.getDBHelper(this);
 
         if (db.numberOfContacts() == 0) {
@@ -67,7 +60,16 @@ public class MainActivity extends SampleActivityBase {
             HeartDashboardFragment fragment = new HeartDashboardFragment();
             transaction.replace(R.id.sample_content_fragment, fragment);
             transaction.commit();
+
         }
+
+        Button setthreshhold = (Button) findViewById(R.id.button_threshhold);
+
+        setthreshhold.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, ThreshholdActivity.class));
+            }
+        });
 
     }
 

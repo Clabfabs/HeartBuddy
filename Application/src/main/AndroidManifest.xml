@@ -46,7 +46,10 @@
             android:theme="@android:style/Theme.Holo.Dialog" />
         <activity
             android:name=".SetupActivity"
-            android:label="@string/title_activity_setup">
+            android:label="@string/title_activity_setup"/>
+
+            <activity android:name=".ThreshholdActivity">
+
         </activity>
     </application>
 
