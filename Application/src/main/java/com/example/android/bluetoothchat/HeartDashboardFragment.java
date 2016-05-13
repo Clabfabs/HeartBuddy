@@ -1,17 +1,21 @@
 package com.example.android.bluetoothchat;
 
+import android.Manifest;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.telephony.SmsManager;
@@ -25,6 +29,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.android.common.logger.Log;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.plus.Plus;
+import com.google.android.gms.location.LocationRequest;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.DataPointInterface;
@@ -63,7 +72,7 @@ public class HeartDashboardFragment extends Fragment {
     private BluetoothAdapter mBluetoothAdapter = null;
 
     /**
-     * Member object for the chat services
+     * Member object for the chat services÷÷
      */
     private BluetoothChatService mChatService = null;
 
@@ -76,6 +85,28 @@ public class HeartDashboardFragment extends Fragment {
     String emergencyName;
 
     LineGraphSeries<DataPoint> dataSeries = new LineGraphSeries<DataPoint>();
+    /**
+     * Provides the entry point to Google Play services.
+     */
+    protected GoogleApiClient mGoogleApiClient;
+
+    /**
+     * Represents a geographical location.
+     */
+    protected Location mLastLocation;
+
+    protected String mLatitudeLabel;
+    protected String mLongitudeLabel;
+    protected TextView mLatitudeText;
+    protected TextView mLongitudeText;
+
+    private Activity myActivity;
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        myActivity = activity;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -91,6 +122,15 @@ public class HeartDashboardFragment extends Fragment {
             activity.finish();
         }
 
+        mLatitudeLabel = getResources().getString(R.string.latitude_label);
+        mLongitudeLabel = getResources().getString(R.string.longitude_label);
+        mLatitudeText = (TextView) getActivity().findViewById((R.id.latitude_text));
+        mLongitudeText = (TextView) getActivity().findViewById((R.id.longitude_text));
+
+        buildGoogleApiClient();
+
+
+
         db = DBHelper.getDBHelper(getContext());
 
         ArrayList<String> all = db.getAllContacts();
@@ -102,9 +142,24 @@ public class HeartDashboardFragment extends Fragment {
     }
 
 
+    /**
+     * Builds a GoogleApiClient. Uses the addApi() method to request the LocationServices API.
+     */
+    protected synchronized void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(myActivity)
+                .addConnectionCallbacks(new connectionListener())
+                .addOnConnectionFailedListener(new connectionFailedListener())
+                .addApi(LocationServices.API)
+                .build();
+
+            }
+
+
+
     @Override
     public void onStart() {
         super.onStart();
+        mGoogleApiClient.connect();
         // If BT is not on, request that it be enabled.
         if (!mBluetoothAdapter.isEnabled()) {
             Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
@@ -112,6 +167,46 @@ public class HeartDashboardFragment extends Fragment {
             // Otherwise, setup the chat session
         } else if (mChatService == null) {
             mChatService = new BluetoothChatService(getActivity(), mHandler);
+        }
+
+    }
+
+    class connectionFailedListener implements GoogleApiClient.OnConnectionFailedListener {
+        @Override
+        public void onConnectionFailed(ConnectionResult result) {
+            // Refer to the javadoc for ConnectionResult to see what error codes might be returned in
+            // onConnectionFailed.
+            Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
+        }
+    }
+
+    class connectionListener implements GoogleApiClient.ConnectionCallbacks {
+        @Override
+        public void onConnected(@Nullable Bundle bundle) {
+            if (ActivityCompat.checkSelfPermission(myActivity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(myActivity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return;
+            }
+            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+            if (mLastLocation != null) {
+                mLatitudeText.setText(String.format("%s: %f", mLatitudeLabel,
+                        mLastLocation.getLatitude()));
+                mLongitudeText.setText(String.format("%s: %f", mLongitudeLabel,
+                        mLastLocation.getLongitude()));
+            }
+
+        }
+
+        @Override
+        public void onConnectionSuspended(int i) {
+            Log.i(TAG, "Connection suspended");
+            mGoogleApiClient.connect();
         }
     }
 
@@ -140,6 +235,7 @@ public class HeartDashboardFragment extends Fragment {
 
         initializeGraph();
     }
+
 
     private void initializeGraph() {
         GraphView graph = (GraphView) getView().findViewById(R.id.graph);
@@ -219,7 +315,7 @@ public class HeartDashboardFragment extends Fragment {
     /**
      * The Handler that gets information back from the BluetoothChatService
      */
-    private final Handler mHandler = new Handler() {
+    public final Handler mHandler = new Handler() {
         Calendar cal = Calendar.getInstance();
         int counter = 0;
 
@@ -264,6 +360,7 @@ public class HeartDashboardFragment extends Fragment {
                             break;
                         case "L":
                         case "H":
+
                             BPM = Integer.parseInt(readMessage.substring(1));
                             String message = "EMERGENCY!!!!!!! BPM of " + BPM + " detected!";
                             Log.i(TAG, message);
