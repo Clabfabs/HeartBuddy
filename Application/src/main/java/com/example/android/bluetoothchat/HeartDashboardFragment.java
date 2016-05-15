@@ -480,6 +480,9 @@ public class HeartDashboardFragment extends Fragment {
             case R.id.go_to_setup: {
                 startActivity(new Intent(getActivity(), SetupActivity.class));
             }
+            case R.id.set_threshholds: {
+                startActivity(new Intent(getActivity(), ThreshholdActivity.class));
+            }
         }
         return false;
     }
