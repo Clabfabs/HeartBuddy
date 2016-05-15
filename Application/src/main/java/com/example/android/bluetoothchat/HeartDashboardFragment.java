@@ -46,6 +46,8 @@ import org.w3c.dom.Text;
 import java.util.ArrayList;
 import java.util.Calendar;
 
+import static com.example.android.bluetoothchat.R.string.common_google_play_services_network_error_text;
+
 
 /**
  * This fragment controls Bluetooth to communicate with other devices.
@@ -97,8 +99,8 @@ public class HeartDashboardFragment extends Fragment {
 
     protected String mLatitudeLabel;
     protected String mLongitudeLabel;
-    protected TextView mLatitudeText;
-    protected TextView mLongitudeText;
+    TextView mLatitudeText;
+    TextView mLongitudeText;
 
     private Activity myActivity;
 
@@ -112,6 +114,9 @@ public class HeartDashboardFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        setContentView(R.layout.fragment_heart_dashboard);
+
+
         // Get local Bluetooth adapter
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -139,6 +144,9 @@ public class HeartDashboardFragment extends Fragment {
             emergencyName = all.get(0);
             emergencyPhoneNumber = all.get(1);
         }
+    }
+
+    private void setContentView(int activity_main) {
     }
 
 
@@ -171,6 +179,13 @@ public class HeartDashboardFragment extends Fragment {
 
     }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mGoogleApiClient.isConnected()) {
+            mGoogleApiClient.disconnect();
+        }
+    }
     class connectionFailedListener implements GoogleApiClient.OnConnectionFailedListener {
         @Override
         public void onConnectionFailed(ConnectionResult result) {
@@ -195,12 +210,28 @@ public class HeartDashboardFragment extends Fragment {
             }
             mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             if (mLastLocation != null) {
-                mLatitudeText.setText(String.format("%s: %f", mLatitudeLabel,
-                        mLastLocation.getLatitude()));
-                mLongitudeText.setText(String.format("%s: %f", mLongitudeLabel,
-                        mLastLocation.getLongitude()));
+            //    mLatitudeText.setText(String.format("%s: %f", mLatitudeLabel,
+              //          mLastLocation.getLatitude()));
+                //mLongitudeText.setText(String.format("%s: %f", mLongitudeLabel,
+                  //  mLastLocation.getLongitude()));
+             Log.e("Latitude :", "" + mLastLocation.getLatitude());
+             Log.e("Longitude :", "" + mLastLocation.getLongitude());
+                AssignCoordinates(mLastLocation.getLatitude(),mLastLocation.getLongitude());
+               // mLatitudeText.setText(String.valueOf(mLastLocation.getLatitude()));
+                //mLongitudeText.setText(String.valueOf(mLastLocation.getLongitude()));
             }
+         else {
+            Toast.makeText(myActivity, "No Last Connection is Found", Toast.LENGTH_LONG).show();
+        }
 
+        }
+
+        public void AssignCoordinates(double Latitude, double Longtitude){
+            try {
+                mLatitudeText.setText(String.valueOf(mLastLocation.getLatitude()));
+                mLongitudeText.setText(String.valueOf(mLastLocation.getLongitude()));
+            } catch (Exception e) {
+Log.e("AssignCoor Method", e.getMessage());            } //if the app is crashed
         }
 
         @Override

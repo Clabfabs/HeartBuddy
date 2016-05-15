@@ -11,4 +11,22 @@
         android:layout_height="200dip"
         android:id="@+id/graph" />
 
+    <TextView
+        android:id="@+id/latitude_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="210dp"
+        android:textIsSelectable="true"/>
+
+    <TextView
+        android:id="@+id/longitude_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="240dp"
+        android:textIsSelectable="true"/>
+
 </FrameLayout>
