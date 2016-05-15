@@ -12,7 +12,7 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/setup_next"
+        android:text="@string/save_button"
         android:id="@+id/setup_next"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
