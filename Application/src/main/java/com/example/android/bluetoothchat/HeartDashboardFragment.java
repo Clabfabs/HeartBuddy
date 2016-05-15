@@ -25,6 +25,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -52,7 +55,7 @@ import static com.example.android.bluetoothchat.R.string.common_google_play_serv
 /**
  * This fragment controls Bluetooth to communicate with other devices.
  */
-public class HeartDashboardFragment extends Fragment {
+public class HeartDashboardFragment extends Fragment implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = "BluetoothChatFragment";
 
@@ -135,7 +138,6 @@ public class HeartDashboardFragment extends Fragment {
         buildGoogleApiClient();
 
 
-
         db = DBHelper.getDBHelper(getContext());
 
         ArrayList<String> all = db.getAllContacts();
@@ -155,13 +157,12 @@ public class HeartDashboardFragment extends Fragment {
      */
     protected synchronized void buildGoogleApiClient() {
         mGoogleApiClient = new GoogleApiClient.Builder(myActivity)
-                .addConnectionCallbacks(new connectionListener())
-                .addOnConnectionFailedListener(new connectionFailedListener())
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
 
-            }
-
+    }
 
 
     @Override
@@ -186,59 +187,47 @@ public class HeartDashboardFragment extends Fragment {
             mGoogleApiClient.disconnect();
         }
     }
-    class connectionFailedListener implements GoogleApiClient.OnConnectionFailedListener {
-        @Override
-        public void onConnectionFailed(ConnectionResult result) {
-            // Refer to the javadoc for ConnectionResult to see what error codes might be returned in
-            // onConnectionFailed.
-            Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
-        }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult result) {
+        // Refer to the javadoc for ConnectionResult to see what error codes might be returned in
+        // onConnectionFailed.
+        Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
     }
 
-    class connectionListener implements GoogleApiClient.ConnectionCallbacks {
-        @Override
-        public void onConnected(@Nullable Bundle bundle) {
-            if (ActivityCompat.checkSelfPermission(myActivity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(myActivity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                // TODO: Consider calling
-                //    ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
-                return;
-            }
-            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-            if (mLastLocation != null) {
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        if (ActivityCompat.checkSelfPermission(myActivity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(myActivity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if (mLastLocation != null) {
             //    mLatitudeText.setText(String.format("%s: %f", mLatitudeLabel,
-              //          mLastLocation.getLatitude()));
-                //mLongitudeText.setText(String.format("%s: %f", mLongitudeLabel,
-                  //  mLastLocation.getLongitude()));
-             Log.e("Latitude :", "" + mLastLocation.getLatitude());
-             Log.e("Longitude :", "" + mLastLocation.getLongitude());
-                AssignCoordinates(mLastLocation.getLatitude(),mLastLocation.getLongitude());
-               // mLatitudeText.setText(String.valueOf(mLastLocation.getLatitude()));
-                //mLongitudeText.setText(String.valueOf(mLastLocation.getLongitude()));
-            }
-         else {
+            //          mLastLocation.getLatitude()));
+            //mLongitudeText.setText(String.format("%s: %f", mLongitudeLabel,
+            //  mLastLocation.getLongitude()));
+            Log.e("Latitude :", "" + mLastLocation.getLatitude());
+            Log.e("Longitude :", "" + mLastLocation.getLongitude());
+            AssignCoordinates(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+            // mLatitudeText.setText(String.valueOf(mLastLocation.getLatitude()));
+            //mLongitudeText.setText(String.valueOf(mLastLocation.getLongitude()));
+        } else {
             Toast.makeText(myActivity, "No Last Connection is Found", Toast.LENGTH_LONG).show();
         }
 
-        }
+    }
 
-        public void AssignCoordinates(double Latitude, double Longtitude){
-            try {
-                mLatitudeText.setText(String.valueOf(mLastLocation.getLatitude()));
-                mLongitudeText.setText(String.valueOf(mLastLocation.getLongitude()));
-            } catch (Exception e) {
-Log.e("AssignCoor Method", e.getMessage());            } //if the app is crashed
-        }
-
-        @Override
-        public void onConnectionSuspended(int i) {
-            Log.i(TAG, "Connection suspended");
-            mGoogleApiClient.connect();
-        }
+    @Override
+    public void onConnectionSuspended ( int i){
+        Log.i(TAG, "Connection suspended");
+        mGoogleApiClient.connect();
     }
 
     @Override
@@ -381,19 +370,66 @@ Log.e("AssignCoor Method", e.getMessage());            } //if the app is crashed
                     String readMessage = new String(readBuf, 0, msg.arg1);
                     int BPM;
 
-                    switch (readMessage.substring(0,1)) {
+                    switch (readMessage.substring(0, 1)) {
                         case "B":
                             BPM = Integer.parseInt(readMessage.substring(1));
                             int x = counter++;
                             Log.i(TAG, Integer.toString(x));
                             Log.i(TAG, Integer.toString(BPM));
+
+                            // Update the graph
                             updateGraph(x, BPM);
+
+                            // Show the BPM
+                            TextView hb = (TextView) getActivity().findViewById(R.id.heart_beat);
+                            Log.i(TAG, hb.getText().toString());
+                            hb.setText(Integer.toString(BPM));
+
+                            // Animate img
+                            ImageView img = (ImageView) getActivity().findViewById(R.id.heart_image);
+                            Animation pulse = AnimationUtils.loadAnimation(getContext(), R.anim.heart_pulse);
+                            img.startAnimation(pulse);
+
+                            /*img.setImageResource(R.drawable.heart_big);
+
+                            new Handler().postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    ImageView img = (ImageView) getActivity().findViewById(R.id.heart_image);
+                                    img.setImageResource(R.drawable.heart_small);
+                                }
+                            }, 1000);*/
+
                             break;
                         case "L":
                         case "H":
 
+                            if (ActivityCompat.checkSelfPermission(myActivity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(myActivity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                                // TODO: Consider calling
+                                //    ActivityCompat#requestPermissions
+                                // here to request the missing permissions, and then overriding
+                                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                //                                          int[] grantResults)
+                                // to handle the case where the user grants the permission. See the documentation
+                                // for ActivityCompat#requestPermissions for more details.
+                                break;
+                            }
+                            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
                             BPM = Integer.parseInt(readMessage.substring(1));
                             String message = "EMERGENCY!!!!!!! BPM of " + BPM + " detected!";
+                            if (mLastLocation != null) {
+                                //    mLatitudeText.setText(String.format("%s: %f", mLatitudeLabel,
+                                //          mLastLocation.getLatitude()));
+                                //mLongitudeText.setText(String.format("%s: %f", mLongitudeLabel,
+                                //  mLastLocation.getLongitude()));
+                                Log.e("Latitude :", "" + mLastLocation.getLatitude());
+                                Log.e("Longitude :", "" + mLastLocation.getLongitude());
+                                message += " Patient latitude: " + mLastLocation.getLatitude() + ", Patient longitude: " + mLastLocation.getLongitude() + ".";
+                                // mLatitudeText.setText(String.valueOf(mLastLocation.getLatitude()));
+                                //mLongitudeText.setText(String.valueOf(mLastLocation.getLongitude()));
+                            } else {
+                                Toast.makeText(myActivity, "No Last Connection is Found", Toast.LENGTH_LONG).show();
+                            }
                             Log.i(TAG, message);
                             sendSMSMessage(message);
                             break;
@@ -430,9 +466,7 @@ Log.e("AssignCoor Method", e.getMessage());            } //if the app is crashed
             SmsManager smsManager = SmsManager.getDefault();
             smsManager.sendTextMessage(emergencyPhoneNumber, null, message, null, null);
             Toast.makeText(getContext(), "SMS sent.", Toast.LENGTH_LONG).show();
-        }
-
-        catch (Exception e) {
+        } catch (Exception e) {
             Toast.makeText(getContext(), "SMS faild, please try again.", Toast.LENGTH_LONG).show();
             e.printStackTrace();
         }
@@ -516,5 +550,14 @@ Log.e("AssignCoor Method", e.getMessage());            } //if the app is crashed
             }
         }
         return false;
+    }
+
+    public void AssignCoordinates(double Latitude, double Longitude) {
+        try {
+            mLatitudeText.setText(String.valueOf(Latitude));
+            mLongitudeText.setText(String.valueOf(Longitude));
+        } catch (Exception e) {
+            Log.e("AssignCoor Method", e.getMessage());
+        } //if the app is crashed
     }
 }

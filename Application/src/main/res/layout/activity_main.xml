@@ -48,15 +48,5 @@
         android:textIsSelectable="true"/>
 
 
-    <EditText
-        android:id="@+id/id_number_custom"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:inputType="number"
-        android:ems="10"
-        android:paddingRight="35dip" />
-
-
-
 </LinearLayout>
 

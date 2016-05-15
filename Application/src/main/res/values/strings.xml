@@ -58,5 +58,6 @@
     <string name="longitude_label" />
     <string name="title_activity_threshhold">ThreshholdActivity</string>
     <string name="save_button">Save</string>
+    <string name="BPM">BPM:</string>
 
 </resources>
