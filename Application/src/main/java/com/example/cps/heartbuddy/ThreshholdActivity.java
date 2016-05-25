@@ -1,4 +1,4 @@
-package com.example.android.bluetoothchat;
+package com.example.cps.heartbuddy;
 
 import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
@@ -10,7 +10,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.android.common.activities.SampleActivityBase;
+import com.example.cps.common.activities.SampleActivityBase;
 
 /**
  * Created by subash on 11/05/2016.

@@ -1,16 +1,13 @@
-package com.example.android.bluetoothchat;
+package com.example.cps.heartbuddy;
 
 import android.Manifest;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -31,12 +28,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.android.common.logger.Log;
+import com.example.cps.common.logger.Log;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.plus.Plus;
-import com.google.android.gms.location.LocationRequest;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.DataPointInterface;
@@ -44,20 +39,15 @@ import com.jjoe64.graphview.series.LineGraphSeries;
 import com.jjoe64.graphview.series.OnDataPointTapListener;
 import com.jjoe64.graphview.series.Series;
 
-import org.w3c.dom.Text;
-
 import java.util.ArrayList;
-import java.util.Calendar;
-
-import static com.example.android.bluetoothchat.R.string.common_google_play_services_network_error_text;
 
 
 /**
- * This fragment controls Bluetooth to communicate with other devices.
+ * This fragment controls Bluetooth to communicate with the Arduino board and displays the received data.
  */
 public class HeartDashboardFragment extends Fragment implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-    private static final String TAG = "BluetoothChatFragment";
+    private static final String TAG = "HeartDashboardFragment";
 
     // Intent request codes
     private static final int REQUEST_CONNECT_DEVICE_SECURE = 1;
@@ -82,9 +72,6 @@ public class HeartDashboardFragment extends Fragment implements GoogleApiClient.
     private BluetoothChatService mChatService = null;
 
     private DBHelper db;
-
-    protected LocationManager locationManager;
-    protected LocationListener locationListener;
 
     String emergencyPhoneNumber;
     String emergencyName;
@@ -117,8 +104,6 @@ public class HeartDashboardFragment extends Fragment implements GoogleApiClient.
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        setContentView(R.layout.fragment_heart_dashboard);
-
 
         // Get local Bluetooth adapter
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -147,10 +132,6 @@ public class HeartDashboardFragment extends Fragment implements GoogleApiClient.
             emergencyPhoneNumber = all.get(1);
         }
     }
-
-    private void setContentView(int activity_main) {
-    }
-
 
     /**
      * Builds a GoogleApiClient. Uses the addApi() method to request the LocationServices API.
@@ -219,7 +200,7 @@ public class HeartDashboardFragment extends Fragment implements GoogleApiClient.
             // mLatitudeText.setText(String.valueOf(mLastLocation.getLatitude()));
             //mLongitudeText.setText(String.valueOf(mLastLocation.getLongitude()));
         } else {
-            Toast.makeText(myActivity, "No Last Connection is Found", Toast.LENGTH_LONG).show();
+            // wunderlistToast.makeText(myActivity, "No Last Connection is Found", Toast.LENGTH_LONG).show();
         }
 
     }
@@ -259,6 +240,7 @@ public class HeartDashboardFragment extends Fragment implements GoogleApiClient.
 
     private void initializeGraph() {
         GraphView graph = (GraphView) getView().findViewById(R.id.graph);
+        graph.getGridLabelRenderer().setHorizontalLabelsVisible(false);
         graph.getViewport().setScrollable(true);
         graph.getViewport().setScalable(true);
         graph.getViewport().setYAxisBoundsManual(true);
@@ -336,7 +318,6 @@ public class HeartDashboardFragment extends Fragment implements GoogleApiClient.
      * The Handler that gets information back from the BluetoothChatService
      */
     public final Handler mHandler = new Handler() {
-        Calendar cal = Calendar.getInstance();
         int counter = 0;
 
         @Override
@@ -389,16 +370,6 @@ public class HeartDashboardFragment extends Fragment implements GoogleApiClient.
                             ImageView img = (ImageView) getActivity().findViewById(R.id.heart_image);
                             Animation pulse = AnimationUtils.loadAnimation(getContext(), R.anim.heart_pulse);
                             img.startAnimation(pulse);
-
-                            /*img.setImageResource(R.drawable.heart_big);
-
-                            new Handler().postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    ImageView img = (ImageView) getActivity().findViewById(R.id.heart_image);
-                                    img.setImageResource(R.drawable.heart_small);
-                                }
-                            }, 1000);*/
 
                             break;
                         case "L":
@@ -467,7 +438,7 @@ public class HeartDashboardFragment extends Fragment implements GoogleApiClient.
             smsManager.sendTextMessage(emergencyPhoneNumber, null, message, null, null);
             Toast.makeText(getContext(), "SMS sent.", Toast.LENGTH_LONG).show();
         } catch (Exception e) {
-            Toast.makeText(getContext(), "SMS faild, please try again.", Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), "SMS failed, please try again.", Toast.LENGTH_LONG).show();
             e.printStackTrace();
         }
     }

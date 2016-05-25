@@ -1,4 +1,4 @@
-package com.example.android.bluetoothchat;
+package com.example.cps.heartbuddy;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -7,9 +7,8 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.android.common.activities.SampleActivityBase;
-import com.example.android.common.logger.Log;
-import com.example.android.common.logger.LogWrapper;
+import com.example.cps.common.activities.SampleActivityBase;
+import com.example.cps.common.logger.Log;
 
 import java.util.ArrayList;
 
